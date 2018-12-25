@@ -17,9 +17,11 @@ function addElement(text = '', style = ''){
 let checkForList = (textArr, text, index) => {
 	return new Promise ((resolve, reject) => {
 		let newList = [];
+		console.log("checking for list");
 		for (var i = index; i < textArr.length; i++){
 			let spaceIndex = textArr[i].indexOf(' ');
 			let symbol = textArr[i].substring(0, spaceIndex);
+			console.log(symbol);
 			if (symbol == '*' || symbol == '-'){
 				let text = textArr[i].substring(spaceIndex, textArr[i].length);
 				newList.push(text);
@@ -29,11 +31,8 @@ let checkForList = (textArr, text, index) => {
 				resolve(i);
 			}
 		}
-		// Add list and send new index
-		/*if (i >= textArr.length -1){
-			addList(newList);
-			resolve(i);
-		}*/
+		addList(newList);
+		resolve(i);
 	});
 }
 
@@ -83,9 +82,10 @@ function updateMarkdown(){
 	for (let i = 0; i < parsedText.length; i++){
 		if (parsedText[i].length == 0){
 			parsedText.splice(i, 1);
+			i--;
 		}
 		// Execute at end of loop
-		if (i == parsedText.length - 2){
+		if (i == parsedText.length - 1){
 			console.log(parsedText);
 			parseMarkdown(parsedText);
 		}
