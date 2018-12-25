@@ -1,10 +1,12 @@
 // Display markdown text
 function addElement(text = '', style = ''){
 	if (text.length != 0){
+		// Styled text
 		if (style.length != 0){
 			var element = document.createElement(style);
 			element.innerHTML = text;
 		}
+		// Normal text
 		else {
 			var element = document.createElement('p');
 			element.innerHTML = text;
@@ -13,26 +15,27 @@ function addElement(text = '', style = ''){
 	}
 }
 
-// Check for list
+// Put consecutive elements into a list
 let checkForList = (textArr, text, index) => {
 	return new Promise ((resolve, reject) => {
 		let newList = [];
-		console.log("checking for list");
+		// Check consecutive
 		for (var i = index; i < textArr.length; i++){
 			let spaceIndex = textArr[i].indexOf(' ');
 			let symbol = textArr[i].substring(0, spaceIndex);
-			console.log(symbol);
+
+			// Add to list array
 			if (symbol == '*' || symbol == '-'){
 				let text = textArr[i].substring(spaceIndex, textArr[i].length);
 				newList.push(text);
 			}
 			else {
-				addList(newList);
-				resolve(i);
+				break;
 			}
 		}
 		addList(newList);
-		resolve(i);
+		resolve(i-1);
+		
 	});
 }
 
@@ -70,6 +73,7 @@ async function parseMarkdown(textArr){
 	}
 }
 
+// Main callback
 function updateMarkdown(){
 	// Clear old output
 	document.getElementById('display').innerHTML = "";
@@ -86,7 +90,6 @@ function updateMarkdown(){
 		}
 		// Execute at end of loop
 		if (i == parsedText.length - 1){
-			console.log(parsedText);
 			parseMarkdown(parsedText);
 		}
 	}
