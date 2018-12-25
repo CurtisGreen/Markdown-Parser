@@ -53,6 +53,7 @@ function addList(textArr){
 // Parse by line
 async function parseMarkdown(textArr){
 	for (let line = 0; line < textArr.length; line++){
+		textArr[line] = await removeSpaces(textArr[line]);
 		let spaceIndex = textArr[line].indexOf(' ');
 		let symbol = textArr[line].substring(0, spaceIndex);
 		let text = textArr[line].substring(spaceIndex, textArr[line].length);
@@ -67,7 +68,7 @@ async function parseMarkdown(textArr){
 			case '*':
 			case '-': await checkForList(textArr, text, line).then(index => line = index);
 				break;
-			default: addElement(text);
+			default: addElement(textArr[line]);
 		}
 		
 	}
