@@ -1,3 +1,68 @@
+// Italics/Bold
+function checkForInnerFormatting(text){
+	let reg = /\**\*[^*]*\**/g;
+	let startIndex = 0;
+	let lastLength = 0;
+	let styleArr = [];
+	let textArr = [];
+
+	// Create an array of styled sections
+	while((match = reg.exec(text)) != null){
+		if (match[0].length > 2){
+			
+			// Add plaintext
+			textArr.push(text.substring(startIndex, match.index));
+			styleArr.push('p');
+			startIndex = match.index + match[0].length;
+
+			// Add styled text
+			let styledText = text.substring(startIndex, match.index);
+			let lnth = styledText.length;
+
+			// Bold
+			if (match[0].length > 4){
+				if (styledText[0] == '*' && styledText[1] == '*' && styledText[lnth-2] == '*' && styledText[lnth-1] == '*'){
+					textArr.push(styledText.substring(2, lnth-2));
+					styleArr.push('strong');
+				}
+			}
+			// Italics
+			else {
+				if (styledText[0] == '*' && styledText[lnth-1] == '*'){
+					textArr.push(styledText.substring(1, lnth-1));
+					styleArr.push('em');
+				}
+
+			}
+		}
+		
+	}
+
+	// Check for ending 
+	textArr.push(text.substring(startIndex));
+	styleArr.push('p');
+	addElements(textArr, styleArr);
+
+}
+
+// Create line of various styled text
+function addElements(texts = [], styles = []){
+	let parent = document.createElement('p');
+	for (let i = 0; i < texts.length; i++){
+		// No style
+		if (styles[i] == 'p'){
+			parent.innerHTML += texts[i];
+		}
+		// Style
+		else {
+			let child = document.createElement(styles[i]);
+			child.innerHTML = texts[i];
+			parent.appendChild(child);
+		}	
+	}
+	document.getElementById('display').appendChild(parent);
+}
+
 // Display markdown text
 function addElement(text = '', style = ''){
 	if (text.length != 0){
@@ -68,7 +133,7 @@ async function parseMarkdown(textArr){
 			case '*':
 			case '-': await checkForList(textArr, text, line).then(index => line = index);
 				break;
-			default: addElement(textArr[line]);
+			default: checkForInnerFormatting(textArr[line]);
 		}
 		
 	}
