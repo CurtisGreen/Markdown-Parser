@@ -8,5 +8,6 @@ Open index.html to run, no libraries required
 * Indentation on bullet points
 * Numbered lists
 * Strikethrough
+* Line breaks
 * Tables
 * Links
