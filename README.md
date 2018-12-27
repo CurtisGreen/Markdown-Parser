@@ -6,4 +6,7 @@ Open index.html to run, no libraries required
 
 ### TODO:
 * Indentation on bullet points
+* Numbered lists
+* Strikethrough
+* Tables
 * Links
