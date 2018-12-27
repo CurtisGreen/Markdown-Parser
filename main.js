@@ -1,66 +1,34 @@
-// Italics/Bold
-function checkForInnerFormatting(text){
-	let reg = /\**\*[^*]*\**/g;
-	let startIndex = 0;
-	let lastLength = 0;
-	let styleArr = [];
-	let textArr = [];
+// Put consecutive elements into a list
+async function checkForList(textArr, index) {
+	let newList = [];
+	// Check consecutive
+	for (var i = index; i < textArr.length; i++){
+		let spaceIndex = textArr[i].indexOf(' ');
+		let symbol = textArr[i].substring(0, spaceIndex);
 
-	// Create an array of styled sections
-	while((match = reg.exec(text)) != null){
-		if (match[0].length > 2){
-			
-			// Add plaintext
-			textArr.push(text.substring(startIndex, match.index));
-			styleArr.push('p');
-			startIndex = match.index + match[0].length;
-
-			// Add styled text
-			let styledText = text.substring(startIndex, match.index);
-			let lnth = styledText.length;
-
-			// Bold
-			if (match[0].length > 4){
-				if (styledText[0] == '*' && styledText[1] == '*' && styledText[lnth-2] == '*' && styledText[lnth-1] == '*'){
-					textArr.push(styledText.substring(2, lnth-2));
-					styleArr.push('strong');
-				}
-			}
-			// Italics
-			else {
-				if (styledText[0] == '*' && styledText[lnth-1] == '*'){
-					textArr.push(styledText.substring(1, lnth-1));
-					styleArr.push('em');
-				}
-
-			}
+		// Add to list array
+		if (symbol == '*' || symbol == '-'){
+			let text = textArr[i].substring(spaceIndex, textArr[i].length)
+			let html = await checkForInnerFormatting(text);
+			newList.push(html);
 		}
-		
+		else {
+			break;
+		}
 	}
-
-	// Check for ending 
-	textArr.push(text.substring(startIndex));
-	styleArr.push('p');
-	addElements(textArr, styleArr);
-
+	addList(newList);
+	return i-1;
 }
 
-// Create line of various styled text
-function addElements(texts = [], styles = []){
-	let parent = document.createElement('p');
-	for (let i = 0; i < texts.length; i++){
-		// No style
-		if (styles[i] == 'p'){
-			parent.innerHTML += texts[i];
-		}
-		// Style
-		else {
-			let child = document.createElement(styles[i]);
-			child.innerHTML = texts[i];
-			parent.appendChild(child);
-		}	
+// Display markdown list
+function addList(textArr){
+	let ul = document.createElement('ul');
+	for (let i = 0; i < textArr.length; i++){
+		let li = document.createElement('li');
+		li.innerHTML = textArr[i];
+		ul.appendChild(li);
 	}
-	document.getElementById('display').appendChild(parent);
+	document.getElementById('display').appendChild(ul);
 }
 
 // Display markdown text
@@ -80,39 +48,66 @@ function addElement(text = '', style = ''){
 	}
 }
 
-// Put consecutive elements into a list
-let checkForList = (textArr, text, index) => {
-	return new Promise ((resolve, reject) => {
-		let newList = [];
-		// Check consecutive
-		for (var i = index; i < textArr.length; i++){
-			let spaceIndex = textArr[i].indexOf(' ');
-			let symbol = textArr[i].substring(0, spaceIndex);
-
-			// Add to list array
-			if (symbol == '*' || symbol == '-'){
-				let text = textArr[i].substring(spaceIndex, textArr[i].length);
-				newList.push(text);
-			}
-			else {
-				break;
-			}
+// Create line of various styled text
+async function addElements(texts = [], styles = []){
+	let html = '';
+	for (let i = 0; i < texts.length; i++){
+		// No style
+		if (styles[i] == 'p'){
+			html += texts[i];
 		}
-		addList(newList);
-		resolve(i-1);
-		
-	});
+		// Style
+		else {
+			html += '<' + styles[i] + '>';
+			html += texts[i];
+			html += '</' + styles[i] + '>';
+		}	
+	}
+	return html;
 }
 
-// Display markdown list
-function addList(textArr){
-	let ul = document.createElement('ul');
-	for (let i = 0; i < textArr.length; i++){
-		let li = document.createElement('li');
-		li.innerHTML = textArr[i];
-		ul.appendChild(li);
+// Italics/Bold
+async function checkForInnerFormatting(text){
+	let reg = /\**\*[^*]*\**/g;
+	let startIndex = 0;
+	let lastLength = 0;
+	let styleArr = [];
+	let textArr = [];
+
+	// Create an array of styled sections
+	while((match = reg.exec(text)) != null){
+		if (match[0].length > 2){
+
+			// Add plaintext
+			textArr.push(text.substring(startIndex, match.index));
+			styleArr.push('p');
+			startIndex = match.index + match[0].length;
+
+			// Add styled text
+			let styledText = text.substring(startIndex, match.index);
+			let lnth = styledText.length;
+			// Bold
+			if (match[0].length > 4 && styledText[0] == '*' 
+			  && styledText[1] == '*' && styledText[lnth-2] == '*' 
+			  && styledText[lnth-1] == '*'){
+				textArr.push(styledText.substring(2, lnth-2));
+				styleArr.push('strong');
+			}
+			// Italics
+			else if (styledText[0] == '*' && styledText[lnth-1] == '*'){
+				textArr.push(styledText.substring(1, lnth-1));
+				styleArr.push('em');
+			}
+		}
+		
 	}
-	document.getElementById('display').appendChild(ul);
+
+	// Check for ending 
+	textArr.push(text.substring(startIndex));
+	styleArr.push('p');
+	let html = await addElements(textArr, styleArr);
+	return html;
+
 }
 
 // Parse by line
@@ -122,18 +117,21 @@ async function parseMarkdown(textArr){
 		let spaceIndex = textArr[line].indexOf(' ');
 		let symbol = textArr[line].substring(0, spaceIndex);
 		let text = textArr[line].substring(spaceIndex, textArr[line].length);
+		let html = await checkForInnerFormatting(text);
 
 		switch(symbol){
-			case '#': addElement(text, 'h1'); break;
-			case '##': addElement(text, 'h2'); break;
-			case '###': addElement(text, 'h3'); break;
-			case '####': addElement(text, 'h4'); break;
-			case '#####': addElement(text, 'h5'); break;
-			case '######': addElement(text, 'h6'); break;
+			case '#': addElement(html, 'h1'); break;
+			case '##': addElement(html, 'h2'); break;
+			case '###': addElement(html, 'h3'); break;
+			case '####': addElement(html, 'h4'); break;
+			case '#####': addElement(html, 'h5'); break;
+			case '######': addElement(html, 'h6'); break;
 			case '*':
-			case '-': await checkForList(textArr, text, line).then(index => line = index);
+			case '-': await checkForList(textArr, line).then(index => line = index);
 				break;
-			default: checkForInnerFormatting(textArr[line]);
+			default: 
+				html = await checkForInnerFormatting(textArr[line]);
+				addElement(html);
 		}
 		
 	}
